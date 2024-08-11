@@ -10,7 +10,7 @@ import { Trip } from '../models/trip';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './edit-trip.component.html',
-  styleUrls: ['./edit-trip.component.css'] // Ensure this file exists
+  styleUrls: ['./edit-trip.component.css']
 })
 export class EditTripComponent implements OnInit {
   public editForm!: FormGroup;
@@ -25,16 +25,15 @@ export class EditTripComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // Retrieve stashed trip ID
     let tripCode = localStorage.getItem("tripCode");
     if (!tripCode) {
-      alert("Something wrong, couldn't find where I stashed tripCode!");
+      alert("Something went wrong; couldn't find where I stashed tripCode!");
       this.router.navigate(['']);
       return;
     }
 
     console.log('EditTripComponent::ngOnInit');
-    console.log('tripCode:' + tripCode);
+    console.log('tripCode:', tripCode);
 
     this.editForm = this.formBuilder.group({
       _id: [],
@@ -51,8 +50,18 @@ export class EditTripComponent implements OnInit {
     this.tripDataService.getTrip(tripCode)
       .subscribe({
         next: (value: Trip) => {
-          this.trip = value; // Directly assign the Trip object
-          this.editForm.patchValue(this.trip);
+          console.log('API Response:', value);
+
+          // Convert API date to a string in 'YYYY-MM-DD' format
+          const formattedDate = this.formatDateForInput(new Date(value.start));
+          console.log('Formatted Date for Input:', formattedDate);
+
+          // Patch the form with the formatted date string
+          this.editForm.patchValue({
+            ...value,
+            start: formattedDate
+          });
+
           this.message = 'Trip: ' + tripCode + ' retrieved';
           console.log(this.message);
         },
@@ -63,10 +72,27 @@ export class EditTripComponent implements OnInit {
       });
   }
 
+  private formatDateForInput(date: Date): string {
+    const year = date.getFullYear();
+    const month = ('0' + (date.getMonth() + 1)).slice(-2);
+    const day = ('0' + date.getDate()).slice(-2);
+    return `${year}-${month}-${day}`; // Format for HTML date input
+  }
+
+  private parseDate(dateString: string): Date {
+    const [year, month, day] = dateString.split('-').map(Number);
+    return new Date(year, month - 1, day); // Convert to Date object
+  }
+
   public onSubmit(): void {
     this.submitted = true;
     if (this.editForm.valid) {
-      this.tripDataService.updateTrip(this.editForm.value)
+      // Convert date string from YYYY-MM-DD to ISO format for submission
+      const formValue = this.editForm.value;
+      const formattedDate = this.parseDate(formValue.start);
+      formValue.start = formattedDate.toISOString(); // Convert to ISO format
+
+      this.tripDataService.updateTrip(formValue)
         .subscribe({
           next: (value: any) => {
             console.log('Update successful:', value);
@@ -79,6 +105,5 @@ export class EditTripComponent implements OnInit {
     }
   }
 
-  // Get the form short name to access the form fields
   get f() { return this.editForm.controls; }
 }
