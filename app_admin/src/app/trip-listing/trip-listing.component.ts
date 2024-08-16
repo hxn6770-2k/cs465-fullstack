@@ -1,11 +1,10 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TripCardComponent } from '../trip-card/trip-card.component';
-
 import { Trip } from '../models/trip'; // Importing the Trip model
 import { TripDataService } from '../services/trip-data.service'; // Importing the TripDataService
-
 import { Router } from '@angular/router';
+import { AuthenticationService } from '../services/authentication.service'; // Import AuthenticationService
 
 @Component({
   selector: 'app-trip-listing',
@@ -21,12 +20,18 @@ export class TripListingComponent implements OnInit {
   trips!: Trip[]; // Use the Trip model for typing
   message: string = ''; // A message to show the status of the data retrieval
 
-  // Injecting the TripDataService into the constructor
+  // Injecting the TripDataService and AuthenticationService into the constructor
   constructor(
     private tripDataService: TripDataService,
-    private router: Router
+    private router: Router,
+    private authenticationService: AuthenticationService // Add AuthenticationService
   ) {
     console.log('trip-listing constructor');
+  }
+
+  // Method to check if the user is logged in
+  public isLoggedIn(): boolean {
+    return this.authenticationService.isLoggedIn();
   }
 
   public addTrip(): void {
@@ -50,7 +55,6 @@ export class TripListingComponent implements OnInit {
       }
     })
   }
-
 
   // ngOnInit lifecycle hook to initialize data fetching
   ngOnInit(): void {
