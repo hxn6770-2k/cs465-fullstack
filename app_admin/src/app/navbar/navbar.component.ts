@@ -10,6 +10,7 @@ import { AuthenticationService } from '../services/authentication.service';
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.css'] // Ensure correct property name "styleUrls"
 })
+
 export class NavbarComponent {
   constructor(
     private authenticationService: AuthenticationService
